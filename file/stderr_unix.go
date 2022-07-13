@@ -15,19 +15,19 @@
 // specific language governing permissions and limitations
 // under the License.
 
-//go:build js
-// +build js
+//go:build !windows && !js
+// +build !windows,!js
 
 package file
 
 import (
-	"errors"
 	"os"
-	"runtime"
+
+	"golang.org/x/sys/unix"
 )
 
 // RedirectStandardError causes all standard error output to be directed to the
 // given file.
 func RedirectStandardError(toFile *os.File) error {
-	return errors.New("RedirectStandardError is not implemented for " + runtime.GOOS)
+	return unix.Dup2(int(toFile.Fd()), 2)
 }
