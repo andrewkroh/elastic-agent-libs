@@ -15,16 +15,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// This build tag is equivalent of "unix" in Go 1.19.
-//go:build aix || android || darwin || dragonfly || freebsd || hurd || illumos || ios || linux || netbsd || openbsd || solaris
-// +build aix android darwin dragonfly freebsd hurd illumos ios linux netbsd openbsd solaris
-
 package file
 
 import (
-	"errors"
 	"os"
-	"syscall"
 )
 
 func stat(name string, statFunc func(name string) (os.FileInfo, error)) (FileInfo, error) {
@@ -37,12 +31,5 @@ func stat(name string, statFunc func(name string) (os.FileInfo, error)) (FileInf
 }
 
 func wrap(info os.FileInfo) (FileInfo, error) {
-	stat, ok := info.Sys().(*syscall.Stat_t)
-	if !ok {
-		return nil, errors.New("failed to get uid/gid")
-	}
-
-	uid := int(stat.Uid)
-	gid := int(stat.Gid)
-	return fileInfo{FileInfo: info, uid: &uid, gid: &gid}, nil
+	return fileInfo{FileInfo: info}, nil
 }
