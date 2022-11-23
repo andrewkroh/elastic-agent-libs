@@ -37,7 +37,7 @@ func (vs *KeyValueVisitor) OnRegistryFinished() {
 }
 
 func (vs *KeyValueVisitor) OnKey(name string) {
-	vs.level = append(vs.level, name)
+	vs.level = append(vs.level, EscapeDots(name))
 }
 
 func (vs *KeyValueVisitor) getName() string {

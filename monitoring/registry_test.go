@@ -139,9 +139,10 @@ func TestRegistryIter(t *testing.T) {
 	}(t)
 
 	vars := map[string]int64{
-		"sub.registry.v1": 1,
-		"sub.registry.v2": 2,
-		"v3":              3,
+		//"sub.registry.v1":   1,
+		//"sub.registry.v2":   2,
+		//"v3":                3,
+		`sub\.registry\.v1`: 4,
 	}
 
 	for name, v := range vars {

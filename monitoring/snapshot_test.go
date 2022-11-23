@@ -49,6 +49,20 @@ func TestSnapshot(t *testing.T) {
 			},
 		},
 		{
+			"key with dots",
+			map[string]interface{}{"foo": map[string]interface{}{"bar": int64(1)}},
+			func(R *Registry) {
+				NewInt(R, "foo.bar", Report).Set(1)
+			},
+		},
+		{
+			"key with escaped dots",
+			map[string]interface{}{"foo.bar": int64(1)},
+			func(R *Registry) {
+				NewInt(R, "foo\\.bar", Report).Set(1)
+			},
+		},
+		{
 			"do not report unexported namespace",
 			map[string]interface{}{"test": int64(0)},
 			func(R *Registry) {
@@ -102,5 +116,39 @@ func TestSnapshot(t *testing.T) {
 
 		t.Logf("  actual: %v", snapshot)
 		assert.Equal(t, test.expected, snapshot)
+	}
+}
+
+func TestFlatSnapshot(t *testing.T) {
+	tests := []struct {
+		name     string
+		expected map[string]int64
+		build    func(R *Registry)
+	}{
+		{
+			"key with dots",
+			map[string]int64{"foo.bar": 1},
+			func(R *Registry) {
+				NewInt(R, "foo.bar", Report).Set(1)
+			},
+		},
+		{
+			"key with escaped dots",
+			map[string]int64{"foo.bar": 2},
+			func(R *Registry) {
+				NewInt(R, "foo\\.bar", Report).Set(2)
+			},
+		},
+	}
+
+	for i, test := range tests {
+		t.Logf("run test (%v - %v): %v", i, test.name, test.expected)
+
+		R := NewRegistry()
+		test.build(R)
+		snapshot := CollectFlatSnapshot(R, Reported, false)
+
+		t.Logf("  actual: %v", snapshot)
+		assert.Equal(t, test.expected, snapshot.Ints)
 	}
 }

@@ -126,7 +126,7 @@ func (r *Registry) GetRegistry(name string) *Registry {
 
 // Remove removes a variable or a sub-registry by name
 func (r *Registry) Remove(name string) {
-	r.removeNames(strings.Split(name, "."))
+	r.removeNames(nameToPath(name))
 }
 
 // Clear removes all entries from the current registry
@@ -152,11 +152,11 @@ func (r *Registry) Add(name string, v Var, m Mode) {
 		opts = &tmp
 	}
 
-	panicErr(r.addNames(strings.Split(name, "."), v, opts))
+	panicErr(r.addNames(nameToPath(name), v, opts))
 }
 
 func (r *Registry) doAdd(name string, v Var, opts *options) {
-	panicErr(r.addNames(strings.Split(name, "."), v, opts))
+	panicErr(r.addNames(nameToPath(name), v, opts))
 }
 
 func (r *Registry) addNames(names []string, v Var, opts *options) error {
@@ -193,7 +193,7 @@ func (r *Registry) addNames(names []string, v Var, opts *options) error {
 }
 
 func (r *Registry) find(name string) (entry, error) {
-	return r.findNames(strings.Split(name, "."))
+	return r.findNames(nameToPath(name))
 }
 
 func (r *Registry) findNames(names []string) (entry, error) {
@@ -256,4 +256,49 @@ func panicErr(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+// nameToPath creates a metric path from a dot-separated name. Dots within a
+// name create separate namespaces. Literal dots in the name should be escaped
+// via EscapeDots.
+//
+// Example input/outputs:
+//
+//	foo.bar = [foo, bar]
+//	foo\.bar = [foo.bar]
+func nameToPath(key string) []string {
+	var paths []string
+	var pathScratch []byte
+	var escape bool
+	for i := 0; i < len(key); i++ {
+		switch c := key[i]; c {
+		case '\\':
+			escape = true
+		case '.':
+			if escape {
+				pathScratch = append(pathScratch, '.')
+			} else {
+				if len(pathScratch) > 0 {
+					paths = append(paths, string(pathScratch))
+					pathScratch = pathScratch[:0]
+				}
+			}
+			escape = false
+		default:
+			pathScratch = append(pathScratch, c)
+			escape = false
+		}
+	}
+
+	if len(pathScratch) > 0 {
+		paths = append(paths, string(pathScratch))
+	}
+
+	return paths
+}
+
+// EscapeDots returns the name with an escape (`\`) added before every
+// dot (`.`) character.
+func EscapeDots(name string) string {
+	return strings.ReplaceAll(name, ".", "\\.")
 }

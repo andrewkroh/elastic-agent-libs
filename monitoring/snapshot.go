@@ -113,6 +113,10 @@ func (vs *flatSnapshotVisitor) OnRegistryFinished() {
 }
 
 func (vs *flatSnapshotVisitor) OnKey(name string) {
+	// flatSnapshotVisitor does not return key names with dots escaped, so
+	// it is not possible to distinguish between foo\.bar and foo.bar. This
+	// also means that collisions can occur if both metrics were registered.
+	// Use structSnapshotVisitor to avoid this problem.
 	vs.level = append(vs.level, name)
 }
 

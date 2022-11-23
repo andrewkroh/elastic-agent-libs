@@ -69,6 +69,9 @@ func TestIterExpvarCaptureVars(t *testing.T) {
 		m.Add("i2", 2)
 	}
 
+	// NOTE: This would cause a breaking change if we proceeded with escaping
+	// dotted keys withing the KeyValueVisitor. For this reason I'm stopping
+	// this investigation.
 	expected := map[string]interface{}{
 		"test.integer": int64(42),
 		"test.string":  "testing",
@@ -83,7 +86,7 @@ func TestIterExpvarCaptureVars(t *testing.T) {
 		}
 	})
 
-	assert.Equal(t, collected, expected)
+	assert.Equal(t, expected, collected)
 }
 
 func getOrCreateInt(name string) *expvar.Int {
