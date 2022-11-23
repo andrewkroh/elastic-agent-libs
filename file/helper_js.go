@@ -15,39 +15,17 @@
 // specific language governing permissions and limitations
 // under the License.
 
-//go:build !aix && !windows
-// +build !aix,!windows
+//go:build js
+// +build js
 
 package file
 
-import (
-	"os"
-	"path/filepath"
-)
-
 // SafeFileRotate safely rotates an existing file under path and replaces it with the tempfile
-func SafeFileRotate(path, tempfile string) error {
-
-	if e := os.Rename(tempfile, path); e != nil {
-		return e
-	}
-
-	// best-effort fsync on parent directory. The fsync is required by some
-	// filesystems, so to update the parents directory metadata to actually
-	// contain the new file being rotated in.
-	return SyncParent(path)
+func SafeFileRotate(_, _ string) error {
+	panic("not implemented")
 }
 
 // SyncParent fsyncs parent directory
-func SyncParent(path string) error {
-	parent := filepath.Dir(path)
-	f, err := os.Open(parent)
-
-	//nolint:nilerr // ignore error
-	if err != nil {
-		return nil
-	}
-	defer f.Close()
-
-	return f.Sync()
+func SyncParent(_ string) error {
+	panic("not implemented")
 }

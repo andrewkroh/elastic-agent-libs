@@ -15,6 +15,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
+// This build tag is equivalent of "unix" in Go 1.19.
+//go:build aix || android || darwin || dragonfly || freebsd || hurd || illumos || ios || linux || netbsd || openbsd || solaris
+// +build aix android darwin dragonfly freebsd hurd illumos ios linux netbsd openbsd solaris
+
 package file
 
 import (
@@ -24,7 +28,6 @@ import (
 
 // SafeFileRotate safely rotates an existing file under path and replaces it with the tempfile
 func SafeFileRotate(path, tempfile string) error {
-
 	if e := os.Rename(tempfile, path); e != nil {
 		return e
 	}
@@ -32,17 +35,19 @@ func SafeFileRotate(path, tempfile string) error {
 	// best-effort fsync on parent directory. The fsync is required by some
 	// filesystems, so to update the parents directory metadata to actually
 	// contain the new file being rotated in.
-	// On AIX, fsync will fail if the file is opened in read-only mode,
-	// which is the case with os.Open.
 	return SyncParent(path)
-
 }
 
 // SyncParent fsyncs parent directory
 func SyncParent(path string) error {
-	parent := filepath.Dir(path)
+	flags := os.O_RDONLY
+	if runtime.GOOS == "aix" {
+		// On AIX, fsync will fail if the file is opened in read-only mode.
+		flags = os.O_RDWR
+	}
 
-	f, err := os.OpenFile(parent, os.O_RDWR, 0)
+	parent := filepath.Dir(path)
+	f, err := os.Open(parent, flags, 0)
 	if err != nil {
 		return nil // ignore error
 	}
